@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Sorting Sliding Game</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #292929;
+            color: white;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #game-container {
+            display: grid;
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .block {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .red { background-color: #ff4d4d; }
+        .blue { background-color: #4d79ff; }
+        .green { background-color: #4dff4d; }
+        .yellow { background-color: #ffff4d; color: #000; }
+
+        .empty {
+            background-color: #292929;
+            cursor: default;
+        }
+
+        form {
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        label, input, button {
+            margin: 5px;
+        }
+
+        button {
+            background-color: #e35b00;
+            color: white;
+            font-family: Heebo;
+            border: none;
+            border-radius: 4.3px;
+            height: 35px;
+        }
+
+        #buttons-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Color Sorting Sliding Game</h1>
+    <form id="size-form">
+        <label for="rows">Rows (1-15):</label>
+        <input type="number" id="rows" name="rows" min="1" max="15" value="4"placeholder="Rows">
+        <label for="columns">Columns (1-15):</label>
+        <input type="number" id="columns" name="columns" min="1" max="15" value="4" placeholder="Lines">
+        <button type="submit">Start Game</button>
+        <button type="button" id="check-btn" style="display: none;">Check Game</button>
+        <button type="button" id="restart-btn" style="display: none;">Restart Game</button>
+    </form>
+    <div id="game-container"></div>
+
+    <script>
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        let blocks = [];
+        let emptyIndex;
+        let rows = 4;
+        let columns = 4;
+
+        const gameContainer = document.getElementById('game-container');
+        const restartButton = document.getElementById('restart-btn');
+        const checkButton = document.getElementById('check-btn');
+
+        document.getElementById('size-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            rows = parseInt(document.getElementById('rows').value);
+            columns = parseInt(document.getElementById('columns').value);
+            createBlocks();
+        });
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createBlocks() {
+            blocks = [];
+            for (let i = 0; i < rows * columns - 1; i++) {
+                blocks.push(colors[i % colors.length]);
+            }
+            blocks.push('empty');
+            shuffle(blocks);
+            emptyIndex = blocks.indexOf('empty');
+
+            gameContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            gameContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            gameContainer.style.width = `${columns * 50}px`;
+            gameContainer.style.height = `${rows * 50}px`;
+            updateBlocks();
+
+            restartButton.style.display = 'block';
+            checkButton.style.display = 'block';
+        }
+
+        function restartGame() {
+            createBlocks();
+        }
+
+        function saveGame() {
+            const gameState = {
+                blocks: blocks,
+                emptyIndex: emptyIndex
+            };
+            localStorage.setItem('savedBlocks', JSON.stringify(gameState));
+        }
+
+        function canMove(index) {
+            const row = Math.floor(index / columns);
+            const col = index % columns;
+            const emptyRow = Math.floor(emptyIndex / columns);
+            const emptyCol = emptyIndex % columns;
+
+            return (row === emptyRow && Math.abs(col - emptyCol) === 1) || (col === emptyCol && Math.abs(row - emptyRow) === 1);
+        }
+
+        function moveBlock(index) {
+            [blocks[index], blocks[emptyIndex]] = [blocks[emptyIndex], blocks[index]];
+            emptyIndex = index;
+            updateBlocks();
+            saveGame();
+
+            if (isSorted()) {
+                alert('Congratulations! You have sorted the colors correctly.');
+                // Optionally, you can reset the game or perform other actions upon winning
+            }
+        }
+
+        function isSorted() {
+            for (let i = 0; i < blocks.length - 1; i++) {
+                if (blocks[i] !== colors[i % colors.length]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function updateBlocks() {
+            gameContainer.innerHTML = '';
+            blocks.forEach((color, index) => {
+                const block = document.createElement('div');
+                block.classList.add('block');
+                if (color === 'empty') {
+                    block.classList.add('empty');
+                } else {
+                    block.classList.add(color);
+                }
+                block.dataset.index = index;
+                gameContainer.appendChild(block);
+            });
+        }
+
+        gameContainer.addEventListener('click', (event) => {
+            const index = parseInt(event.target.dataset.index);
+            if (canMove(index)) {
+                moveBlock(index);
+            }
+        });
+
+        restartButton.addEventListener('click', () => {
+            restartGame();
+        });
+
+        checkButton.addEventListener('click', () => {
+            if (isSorted()) {
+                alert('Congratulations! You have sorted the colors correctly.');
+            } else {
+                alert('The colors are not yet sorted correctly.');
+            }
+        });
+
+        // Save game state when the page is about to unload
+        window.addEventListener('beforeunload', () => {
+            saveGame();
+        });
+
+        // Load game state when the page loads
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('savedBlocks')) {
+                const savedState = JSON.parse(localStorage.getItem('savedBlocks'));
+                blocks = savedState.blocks;
+                emptyIndex = savedState.emptyIndex;
+                rows = Math.floor(Math.sqrt(blocks.length));
+                columns = rows;
+                gameContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                gameContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+                gameContainer.style.width = `${columns * 50}px`;
+                gameContainer.style.height = `${rows * 50}px`;
+                updateBlocks();
+                restartButton.style.display = 'block';
+                checkButton.style.display = 'block';
+
+                // Automatically check if the game is sorted when loading
+                if (isSorted()) {
+                    alert('Congratulations! You have sorted the colors correctly.');
+                }
+            } else {
+                createBlocks();
+            }
+        });
+    </script>
+</body>
+</html>
