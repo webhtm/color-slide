@@ -3,243 +3,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Sorting Sliding Game</title>
+    <title>Color Sliding Game</title>
     <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --panel-color: #16213e;
+            --accent-color: #e94560;
+            --text-color: #ecf0f1;
+            --tile-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            background-color: #292929;
-            color: white;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
 
         h1 {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(233, 69, 96, 0.5);
         }
 
-        #game-container {
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #a0a0a0;
+        }
+
+        .stat-value {
+            color: white;
+            font-weight: bold;
+        }
+
+        #game-board {
+            padding: 10px;
+            background-color: var(--panel-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             display: grid;
-            gap: 5px;
-            margin-top: 20px;
+            gap: 6px;
+            /* Transitions for smooth resizing */
+            transition: all 0.3s ease; 
         }
 
         .block {
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
-            color: #fff;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.3s;
+            font-weight: bold;
+            font-size: 0; /* Hide text, rely on color */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2), var(--tile-shadow);
+            transition: transform 0.1s, filter 0.2s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .red { background-color: #ff4d4d; }
-        .blue { background-color: #4d79ff; }
-        .green { background-color: #4dff4d; }
-        .yellow { background-color: #ffff4d; color: #000; }
+        .block:hover {
+            filter: brightness(1.1);
+            transform: scale(0.98);
+        }
 
+        .block::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        }
+
+        /* Dynamic Colors based on ID */
+        .color-0 { background-color: #ff4757; } /* Red */
+        .color-1 { background-color: #2ed573; } /* Green */
+        .color-2 { background-color: #1e90ff; } /* Blue */
+        .color-3 { background-color: #ffa502; } /* Orange */
+        .color-4 { background-color: #9b59b6; } /* Purple */
+        .color-5 { background-color: #00cec9; } /* Teal */
+        .color-6 { background-color: #ff7f50; } /* Coral */
+        .color-7 { background-color: #7bed9f; } /* Lime */
+        
         .empty {
-            background-color: #292929;
+            background-color: transparent;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
             cursor: default;
+            border: 2px dashed rgba(255,255,255,0.1);
         }
+        .empty:hover { transform: none; filter: none; }
+        .empty::after { display: none; }
 
         form {
-            margin-bottom: 20px;
-            text-align: center;
+            margin-bottom: 25px;
+            background: var(--panel-color);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             display: flex;
+            align-items: center;
+            gap: 15px;
             flex-wrap: wrap;
             justify-content: center;
-            align-items: center;
         }
 
-        label, input, button {
-            margin: 5px;
+        input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: white;
+            width: 50px;
+            text-align: center;
         }
 
         button {
-            background-color: #e35b00;
+            background-color: var(--accent-color);
             color: white;
-            font-family: Heebo;
             border: none;
-            border-radius: 4.3px;
-            height: 35px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            text-transform: uppercase;
+            font-size: 0.9rem;
         }
 
-        #buttons-container {
+        button:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Modal for winning */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+        .modal.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: var(--panel-color);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--accent-color);
         }
     </style>
 </head>
 <body>
-    <h1>Color Sorting Sliding Game</h1>
-    <form id="size-form">
-        <label for="rows">Rows (1-15):</label>
-        <input type="number" id="rows" name="rows" min="1" max="15" value="4"placeholder="Rows">
-        <label for="columns">Columns (1-15):</label>
-        <input type="number" id="columns" name="columns" min="1" max="15" value="4" placeholder="Lines">
-        <button type="submit">Start Game</button>
-        <button type="button" id="check-btn" style="display: none;">Check Game</button>
-        <button type="button" id="restart-btn" style="display: none;">Restart Game</button>
+
+    <h1>Color Slide</h1>
+
+    <form id="settings-form">
+        <label>Size:</label>
+        <input type="number" id="grid-size" min="3" max="8" value="4" title="Grid Size (NxN)">
+        <button type="submit">New Game</button>
     </form>
-    <div id="game-container"></div>
+
+    <div class="stats-bar">
+        <div>Moves: <span id="move-count" class="stat-value">0</span></div>
+        <div>Time: <span id="time-count" class="stat-value">00:00</span></div>
+    </div>
+
+    <div id="game-board"></div>
+
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--accent-color)">Sorted!</h2>
+            <p>You organized the colors in <span id="final-moves">0</span> moves.</p>
+            <button onclick="document.getElementById('win-modal').classList.remove('active'); initGame();">Play Again</button>
+        </div>
+    </div>
 
     <script>
-        const colors = ['red', 'blue', 'green', 'yellow'];
-        let blocks = [];
-        let emptyIndex;
-        let rows = 4;
-        let columns = 4;
+        // -- Configuration --
+        let gridSize = 4;
+        let blocks = []; // Array storing color IDs
+        let emptyIndex = -1;
+        let moves = 0;
+        let timerInterval;
+        let seconds = 0;
+        let isGameActive = false;
 
-        const gameContainer = document.getElementById('game-container');
-        const restartButton = document.getElementById('restart-btn');
-        const checkButton = document.getElementById('check-btn');
+        const board = document.getElementById('game-board');
+        const moveDisplay = document.getElementById('move-count');
+        const timeDisplay = document.getElementById('time-count');
+        
+        // Extended palette for larger grids
+        const MAX_COLORS = 8; 
 
-        document.getElementById('size-form').addEventListener('submit', (event) => {
-            event.preventDefault();
-            rows = parseInt(document.getElementById('rows').value);
-            columns = parseInt(document.getElementById('columns').value);
-            createBlocks();
+        document.getElementById('settings-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = parseInt(document.getElementById('grid-size').value);
+            if(input >= 3 && input <= 8) {
+                gridSize = input;
+                initGame();
+            } else {
+                alert("Please choose a size between 3 and 8.");
+            }
         });
 
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
+        function initGame() {
+            // Reset Stats
+            moves = 0;
+            seconds = 0;
+            isGameActive = true;
+            stopTimer();
+            startTimer();
+            updateStats();
+            document.getElementById('win-modal').classList.remove('active');
 
-        function createBlocks() {
+            // Setup CSS Grid
+            board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+            
+            // Adjust board size based on grid size (responsiveness)
+            const tileSize = gridSize > 5 ? 50 : 70;
+            board.style.width = `${gridSize * tileSize + (gridSize-1)*6}px`;
+            board.style.height = `${gridSize * tileSize + (gridSize-1)*6}px`;
+
+            // 1. Create a SOLVED state first
+            // Each ROW will have a unique color.
+            // Row 0 = Color 0, Row 1 = Color 1, etc.
+            // The last cell (bottom right) is empty.
             blocks = [];
-            for (let i = 0; i < rows * columns - 1; i++) {
-                blocks.push(colors[i % colors.length]);
-            }
-            blocks.push('empty');
-            shuffle(blocks);
-            emptyIndex = blocks.indexOf('empty');
-
-            gameContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-            gameContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-            gameContainer.style.width = `${columns * 50}px`;
-            gameContainer.style.height = `${rows * 50}px`;
-            updateBlocks();
-
-            restartButton.style.display = 'block';
-            checkButton.style.display = 'block';
-        }
-
-        function restartGame() {
-            createBlocks();
-        }
-
-        function saveGame() {
-            const gameState = {
-                blocks: blocks,
-                emptyIndex: emptyIndex
-            };
-            localStorage.setItem('savedBlocks', JSON.stringify(gameState));
-        }
-
-        function canMove(index) {
-            const row = Math.floor(index / columns);
-            const col = index % columns;
-            const emptyRow = Math.floor(emptyIndex / columns);
-            const emptyCol = emptyIndex % columns;
-
-            return (row === emptyRow && Math.abs(col - emptyCol) === 1) || (col === emptyCol && Math.abs(row - emptyRow) === 1);
-        }
-
-        function moveBlock(index) {
-            [blocks[index], blocks[emptyIndex]] = [blocks[emptyIndex], blocks[index]];
-            emptyIndex = index;
-            updateBlocks();
-            saveGame();
-
-            if (isSorted()) {
-                alert('Congratulations! You have sorted the colors correctly.');
-                // Optionally, you can reset the game or perform other actions upon winning
-            }
-        }
-
-        function isSorted() {
-            for (let i = 0; i < blocks.length - 1; i++) {
-                if (blocks[i] !== colors[i % colors.length]) {
-                    return false;
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    if (r === gridSize - 1 && c === gridSize - 1) {
+                        blocks.push('empty');
+                    } else {
+                        // Assign color based on ROW index (r)
+                        // Use modulo to cycle colors if grid > palette size
+                        blocks.push(r % MAX_COLORS);
+                    }
                 }
             }
-            return true;
+            emptyIndex = blocks.length - 1;
+
+            // 2. Scramble the board using VALID moves only
+            // This guarantees the puzzle is solvable.
+            scrambleBoard(gridSize * 25); // Number of scramble moves
+
+            renderBoard();
         }
 
-        function updateBlocks() {
-            gameContainer.innerHTML = '';
-            blocks.forEach((color, index) => {
-                const block = document.createElement('div');
-                block.classList.add('block');
-                if (color === 'empty') {
-                    block.classList.add('empty');
+        function scrambleBoard(amount) {
+            // We simulate random moves without triggering win checks or animations
+            let previousIndex = -1;
+            
+            for(let i=0; i<amount; i++) {
+                const neighbors = getValidNeighbors(emptyIndex);
+                // Try not to undo the move we just made immediately
+                const filteredNeighbors = neighbors.filter(n => n !== previousIndex);
+                const candidates = filteredNeighbors.length > 0 ? filteredNeighbors : neighbors;
+                
+                const randomNeighbor = candidates[Math.floor(Math.random() * candidates.length)];
+                
+                // Swap in memory
+                swap(emptyIndex, randomNeighbor);
+                previousIndex = emptyIndex; // The old empty pos is now where we moved from
+                emptyIndex = randomNeighbor;
+            }
+        }
+
+        function getValidNeighbors(index) {
+            const neighbors = [];
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+
+            if (row > 0) neighbors.push(index - gridSize); // Up
+            if (row < gridSize - 1) neighbors.push(index + gridSize); // Down
+            if (col > 0) neighbors.push(index - 1); // Left
+            if (col < gridSize - 1) neighbors.push(index + 1); // Right
+
+            return neighbors;
+        }
+
+        function swap(i, j) {
+            [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+        }
+
+        function renderBoard() {
+            board.innerHTML = '';
+            blocks.forEach((val, index) => {
+                const div = document.createElement('div');
+                div.classList.add('block');
+                
+                if (val === 'empty') {
+                    div.classList.add('empty');
                 } else {
-                    block.classList.add(color);
+                    div.classList.add(`color-${val}`);
+                    div.textContent = val; // Optional: helps colorblind accessibility debug
                 }
-                block.dataset.index = index;
-                gameContainer.appendChild(block);
+                
+                div.dataset.index = index;
+                // Touch/Click event
+                div.addEventListener('click', () => handleMove(index));
+                board.appendChild(div);
             });
         }
 
-        gameContainer.addEventListener('click', (event) => {
-            const index = parseInt(event.target.dataset.index);
-            if (canMove(index)) {
-                moveBlock(index);
+        function handleMove(index) {
+            if (!isGameActive) return;
+
+            const neighbors = getValidNeighbors(emptyIndex);
+            
+            // If the clicked tile is a neighbor of the empty tile
+            if (neighbors.includes(index)) {
+                // Swap Logic
+                swap(index, emptyIndex);
+                emptyIndex = index;
+                
+                moves++;
+                updateStats();
+                renderBoard(); // Re-render to show new state
+                
+                // Slight delay to allow render before alerting
+                setTimeout(checkWin, 50);
             }
-        });
+        }
 
-        restartButton.addEventListener('click', () => {
-            restartGame();
-        });
+        function checkWin() {
+            // Win Condition: 
+            // 1. Last block is empty
+            // 2. All blocks in Row X are Color X
+            
+            if (blocks[blocks.length - 1] !== 'empty') return;
 
-        checkButton.addEventListener('click', () => {
-            if (isSorted()) {
-                alert('Congratulations! You have sorted the colors correctly.');
-            } else {
-                alert('The colors are not yet sorted correctly.');
-            }
-        });
-
-        // Save game state when the page is about to unload
-        window.addEventListener('beforeunload', () => {
-            saveGame();
-        });
-
-        // Load game state when the page loads
-        window.addEventListener('load', () => {
-            if (localStorage.getItem('savedBlocks')) {
-                const savedState = JSON.parse(localStorage.getItem('savedBlocks'));
-                blocks = savedState.blocks;
-                emptyIndex = savedState.emptyIndex;
-                rows = Math.floor(Math.sqrt(blocks.length));
-                columns = rows;
-                gameContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-                gameContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-                gameContainer.style.width = `${columns * 50}px`;
-                gameContainer.style.height = `${rows * 50}px`;
-                updateBlocks();
-                restartButton.style.display = 'block';
-                checkButton.style.display = 'block';
-
-                // Automatically check if the game is sorted when loading
-                if (isSorted()) {
-                    alert('Congratulations! You have sorted the colors correctly.');
+            let isSorted = true;
+            
+            for (let i = 0; i < blocks.length - 1; i++) {
+                const row = Math.floor(i / gridSize);
+                const color = blocks[i];
+                
+                // The color should match the row number (modulo Max Colors)
+                if (color !== (row % MAX_COLORS)) {
+                    isSorted = false;
+                    break;
                 }
-            } else {
-                createBlocks();
             }
-        });
+
+            if (isSorted) {
+                isGameActive = false;
+                stopTimer();
+                document.getElementById('final-moves').innerText = moves;
+                document.getElementById('win-modal').classList.add('active');
+            }
+        }
+
+        function updateStats() {
+            moveDisplay.innerText = moves;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                timeDisplay.innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initGame);
+
     </script>
 </body>
 </html>
-
