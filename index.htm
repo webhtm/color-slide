@@ -6,11 +6,11 @@
     <title>Color Sliding Game</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --panel-color: #1e1e1e;
-            --accent-color: #bb86fc;
-            --text-color: #ffffff;
-            --tile-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            --bg-color: #1a1a2e;
+            --panel-color: #16213e;
+            --accent-color: #e94560;
+            --text-color: #ecf0f1;
+            --tile-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
         }
 
         body {
@@ -27,104 +27,116 @@
         }
 
         h1 {
-            margin-bottom: 5px;
-            font-weight: 300;
-            letter-spacing: 2px;
+            margin-bottom: -5px;
+            font-weight: 10;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            color: var(--accent-color);
+            
+            color: white;
         }
 
         p.subtext {
-            color: #888;
+            color: #8fa1b3;
             font-size: 0.9rem;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
         }
 
         .stats-bar {
             display: flex;
-            gap: 25px;
-            margin-bottom: 20px;
+            gap: 30px;
+            margin-bottom: 25px;
             font-size: 1rem;
-            color: #b0b0b0;
-            background: rgba(255,255,255,0.05);
-            padding: 10px 25px;
+            color: #a0a0a0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 30px;
             border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
         .stat-value {
             color: var(--accent-color);
             font-weight: bold;
             font-family: monospace;
-            font-size: 1.2rem;
-            margin-left: 5px;
+            font-size: 1.3rem;
+            margin-left: 8px;
+            text-shadow: 0 0 5px rgba(233, 69, 96, 0.5);
         }
 
         #game-board {
-            padding: 10px;
+            padding: 15px;
             background-color: var(--panel-color);
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
             display: grid;
-            gap: 6px;
+            gap: 10px;
             transition: all 0.3s ease; 
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .block {
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 4px;
+            border-radius: 12px;
             cursor: pointer;
             position: relative;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-            transition: transform 0.1s;
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.15), var(--tile-shadow);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .block:not(.empty):active {
-            transform: scale(0.95);
+        .block:not(.empty):hover {
+            
+            filter: brightness(1.2);
+            z-index: 2;
         }
 
-        /* Using simpler colors without numbering so it feels less like "math" 
-           and more like "sorting".
-        */
-        .color-0 { background: #cf6679; } /* Red */
-        .color-1 { background: #03dac6; } /* Teal */
-        .color-2 { background: #3700b3; } /* Deep Blue */
-        .color-3 { background: #ffb74d; } /* Orange */
-        .color-4 { background: #76ff03; } /* Lime */
-        .color-5 { background: #b39ddb; } /* Lavender */
+        /* Vibrant Neon Colors */
+        .color-0 { background: linear-gradient(135deg, #ff4757, #ff6b81); } /* Red/Pink */
+        .color-1 { background: linear-gradient(135deg, #2ed573, #7bed9f); } /* Green */
+        .color-2 { background: linear-gradient(135deg, #1e90ff, #70a1ff); } /* Blue */
+        .color-3 { background: linear-gradient(135deg, #ffa502, #ffeaa7); } /* Yellow/Orange */
+        .color-4 { background: linear-gradient(135deg, #8e44ad, #a55eea); } /* Purple */
+        .color-5 { background: linear-gradient(135deg, #00cec9, #81ecec); } /* Teal */
 
         .empty {
-            background-color: transparent;
+            background-color: rgba(0,0,0,0.2);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
             cursor: default;
+            border: 2px dashed rgba(255,255,255,0.05);
         }
 
-        form {
-            margin-bottom: 20px;
+        .controls {
+            margin-top: -5px;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            margin-bottom: 10px;
+            
         }
 
         select, button {
-            background-color: var(--panel-color);
+            background-color: rgba(255,255,255,0.1);
             color: white;
-            border: 1px solid #333;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 1rem;
             cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            margin-left: 10px;
         }
         
-        button {
+        button.primary {
             background-color: var(--accent-color);
-            border: none;
-            color: #000;
-            font-weight: bold;
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
         }
 
         button:hover {
+            transform: translateY(-2px);
             filter: brightness(1.1);
         }
 
@@ -132,43 +144,52 @@
         #win-modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 100;
+            animation: fadeIn 0.3s ease;
         }
         #win-modal.show { display: flex; }
-        #win-modal h2 { font-size: 3rem; margin: 0; color: var(--accent-color); }
+        #win-modal h2 { font-size: 4rem; margin: 0; color: var(--accent-color); text-shadow: 0 0 20px rgba(233, 69, 96, 0.8); }
+        #win-modal p { font-size: 1.5rem; color: #fff; margin-bottom: 30px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
     </style>
 </head>
 <body>
 
     <h1>Color Sliding Game</h1>
-    <p class="subtext">Group same colors together. Any order works!</p>
-
-    <form id="settings-form">
-        <select id="grid-selector">
-            <option value="3">3 x 3 (Easy)</option>
-            <option value="4" selected>4 x 4 (Normal)</option>
-            <option value="5">5 x 5 (Hard)</option>
-        </select>
-        <button type="submit">Restart</button>
-    </form>
+    <p class="subtext">Sort all the colors in seperate lines.</p>
 
     <div class="stats-bar">
         <span>MOVES <span id="move-count" class="stat-value">0</span></span>
         <span>TIME <span id="time-count" class="stat-value">00:00</span></span>
     </div>
+    <div class="controls">
+        <select id="grid-selector">
+            <option value="3">3x3</option>
+            <option value="4" selected>4x4</option>
+            <option value="5">5x5</option>
+        </select>
+        <button class="primary" onclick="initGame()">Restart Game</button>
+    </div>
 
     <div id="game-board"></div>
 
+    
+
     <div id="win-modal">
         <h2>SOLVED!</h2>
-        <p>You grouped the colors successfully.</p>
-        <button onclick="document.getElementById('win-modal').classList.remove('show'); initGame();">Play Again</button>
+        <p>Perfect Harmony.</p>
+        <button class="primary" onclick="document.getElementById('win-modal').classList.remove('show'); initGame();">Play Again</button>
     </div>
 
     <script>
@@ -183,16 +204,16 @@
         const board = document.getElementById('game-board');
         const moveDisplay = document.getElementById('move-count');
         const timeDisplay = document.getElementById('time-count');
-        const MAX_PALETTE = 6; 
 
-        document.getElementById('settings-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            gridSize = parseInt(document.getElementById('grid-selector').value);
+        // Init on load
+        window.addEventListener('load', initGame);
+
+        document.getElementById('grid-selector').addEventListener('change', (e) => {
+            gridSize = parseInt(e.target.value);
             initGame();
         });
 
         function initGame() {
-            // Reset state
             isGameActive = true;
             moves = 0;
             updateStats();
@@ -204,55 +225,45 @@
             startTime = Date.now();
             timerInterval = setInterval(updateTime, 1000);
 
-            // Layout
+            // Layout setup
             board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
             board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
-            const tileSize = gridSize > 4 ? 50 : 70;
-            board.style.width = `${gridSize * tileSize + (gridSize * 6)}px`;
-            board.style.height = `${gridSize * tileSize + (gridSize * 6)}px`;
-
-            // 1. Create Blocks
-            // We want chunks of colors.
-            // E.g. for 4x4 (16 tiles), 15 colors. 
-            // We can split into equal groups based on Grid Size.
-            blocks = [];
-            const totalPlayable = gridSize * gridSize - 1;
             
-            // How many groups of colors? Let's match the row count.
-            let colorsCount = gridSize; 
-            if (colorsCount > MAX_PALETTE) colorsCount = MAX_PALETTE;
+            const tileSize = gridSize > 4 ? 60 : 80;
+            const gap = 10;
+            board.style.width = `${gridSize * tileSize + ((gridSize-1) * gap)}px`;
+            board.style.height = `${gridSize * tileSize + ((gridSize-1) * gap)}px`;
 
-            for (let i = 0; i < totalPlayable; i++) {
-                // Determine color based on even distribution
-                // Math.floor(i / X) keeps adjacent items same color
-                let colorId = Math.floor(i / (totalPlayable / colorsCount));
-                
-                // Cap it just in case
-                if(colorId >= MAX_PALETTE) colorId = MAX_PALETTE - 1;
-                
+            // --- 1. Create Solvable State ---
+            // We need exactly 'GridSize' amount of each color to make full lines possible.
+            // e.g. for 4x4: 4 Reds, 4 Blues, 4 Greens, 3 Yellows + 1 Empty
+            blocks = [];
+            const totalCells = gridSize * gridSize;
+
+            for(let i=0; i < totalCells - 1; i++) {
+                // Determine color based on Row ID to ensure perfect distribution
+                let colorId = Math.floor(i / gridSize);
                 blocks.push(colorId);
             }
-            
             blocks.push('empty');
             emptyIndex = blocks.length - 1;
 
-            // 2. Scramble
+            // --- 2. Scramble (Random Walk) ---
             scrambleBoard(gridSize * 30);
             renderBoard();
         }
 
-        // Random Walk Scramble (Ensures solvability)
         function scrambleBoard(steps) {
             let lastPos = -1;
             for(let i=0; i<steps; i++) {
                 let neighbors = getNeighbors(emptyIndex);
-                // Avoid undoing the immediate last move for better mixing
+                // Simple heuristic to avoid immediate backtracking
                 let valid = neighbors.filter(n => n !== lastPos);
                 if(valid.length === 0) valid = neighbors;
                 
                 let target = valid[Math.floor(Math.random() * valid.length)];
                 
-                // Swap
+                // Swap logic
                 [blocks[emptyIndex], blocks[target]] = [blocks[target], blocks[emptyIndex]];
                 lastPos = emptyIndex;
                 emptyIndex = target;
@@ -276,11 +287,14 @@
             blocks.forEach((val, index) => {
                 const el = document.createElement('div');
                 el.className = 'block';
+                
                 if (val === 'empty') {
                     el.classList.add('empty');
                 } else {
                     el.classList.add(`color-${val}`);
                 }
+                
+                // Add click handler
                 el.onclick = () => handleMove(index);
                 board.appendChild(el);
             });
@@ -299,53 +313,49 @@
                 updateStats();
                 renderBoard();
                 
-                // Check win after tiny delay to allow UI to update
-                setTimeout(checkAnyOrderWin, 20);
+                // Check win with slight delay for UI render
+                setTimeout(checkFlexibleWin, 30);
             }
         }
 
-        // --- NEW LOGIC: ANY ORDER WIN ---
-        function checkAnyOrderWin() {
-            // 1. Convention: Puzzle is usually only "solved" if empty is at the end.
-            if (blocks[blocks.length - 1] !== 'empty') return;
-
-            // 2. Extract just the colors (remove 'empty')
-            const tiles = blocks.filter(b => b !== 'empty');
-
-            // 3. Check for Grouping.
-            // A sorted list (in any order) means that once a color changes,
-            // we should never see the previous color again.
-            
-            const seenColors = new Set();
-            let lastColor = -1;
-
-            for (let i = 0; i < tiles.length; i++) {
-                const currentColor = tiles[i];
-
-                if (i === 0) {
-                    // Initialize
-                    lastColor = currentColor;
-                    seenColors.add(currentColor);
-                    continue;
-                }
-
-                if (currentColor !== lastColor) {
-                    // The color has switched!
-                    // Check: Have we seen this new color before?
-                    if (seenColors.has(currentColor)) {
-                        // YES -> This means the groups are split up. 
-                        // Example: Red, Blue, Red (Red was seen before, but we switched to Blue in middle)
-                        return; // Not a win.
-                    }
-                    
-                    // Register the new color
-                    seenColors.add(currentColor);
-                    lastColor = currentColor;
-                }
+        // --- WIN LOGIC: ROWS OR COLUMNS ---
+        function checkFlexibleWin() {
+            if (checkRows() || checkCols()) {
+                gameWon();
             }
+        }
 
-            // If we survived the loop, it means all groups are contiguous!
-            gameWon();
+        function checkRows() {
+            // Iterate every row
+            for (let r = 0; r < gridSize; r++) {
+                let rowColors = new Set();
+                for (let c = 0; c < gridSize; c++) {
+                    let idx = r * gridSize + c;
+                    // We ignore 'empty' tiles for the color check. 
+                    // This means a row is "pure" if it contains only Red + Empty, or just Red.
+                    if (blocks[idx] !== 'empty') {
+                        rowColors.add(blocks[idx]);
+                    }
+                }
+                // If a row contains more than 1 distinct color type, it's failed.
+                if (rowColors.size > 1) return false;
+            }
+            return true;
+        }
+
+        function checkCols() {
+            // Iterate every column
+            for (let c = 0; c < gridSize; c++) {
+                let colColors = new Set();
+                for (let r = 0; r < gridSize; r++) {
+                    let idx = r * gridSize + c;
+                    if (blocks[idx] !== 'empty') {
+                        colColors.add(blocks[idx]);
+                    }
+                }
+                if (colColors.size > 1) return false;
+            }
+            return true;
         }
 
         function gameWon() {
@@ -365,8 +375,6 @@
             const s = (diff % 60).toString().padStart(2, '0');
             timeDisplay.innerText = `${m}:${s}`;
         }
-
-        window.onload = initGame;
     </script>
 </body>
 </html>
